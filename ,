@@ -6,6 +6,9 @@
 # If there are multiple candidates, the user chooses one using `fzy`.
 set -euo pipefail
 
+DEFAULT_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/nix-index"
+NIX_INDEX_DB="${NIX_INDEX_DB:-$DEFAULT_CACHE}"
+
 picker=fzy
 if [ -n "${COMMA_PICKER+1}" ]; then
   picker="${COMMA_PICKER}"
@@ -19,6 +22,11 @@ fi
 
 if [[ $# -lt 1 ]]; then
   >&2 echo "usage: , <program> [arguments]"
+  exit 1
+fi
+
+if [[ ! -f "${NIX_INDEX_DB}/files" ]]; then
+  >&2 echo "no nix-index cache in '$NIX_INDEX_DB', run nix-index"
   exit 1
 fi
 
