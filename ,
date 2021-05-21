@@ -8,48 +8,49 @@ set -euo pipefail
 
 picker=fzy
 if [ -n "${COMMA_PICKER+1}" ]; then
-  picker="${COMMA_PICKER}"
+	picker="${COMMA_PICKER}"
 fi
 
 # Test that the picker exists
 if ! [ -x "$(command -v "${picker}")" ]; then
-  >&2 echo "picker ${picker} is not found in PATH"
-  exit 1
+	echo >&2 "picker ${picker} is not found in PATH"
+	exit 1
 fi
 
 if [[ $# -lt 1 ]]; then
-  >&2 echo "usage: , <program> [arguments]"
-  exit 1
+	echo >&2 "usage: , <program> [arguments]"
+	exit 1
 fi
 
 if [[ "$1" == "--install" ]] || [[ "$1" == "-i" ]]; then
-  install=1
-  shift
+	install=1
+	shift
 else
-  install=""
+	install=""
 fi
 
-argv0=$1; shift
+argv0=$1
+shift
 
 case "${argv0}" in
-  @OVERLAY_PACKAGES@)
-    attr="${argv0}"
-    ;;
-  *)
-    attr="$(nix-locate --db "${NIX_INDEX_DB}" --top-level --minimal --at-root --whole-name "/bin/${argv0}")"
-    if [[ "$(echo "${attr}" | wc -l)" -ne 1 ]]; then
-      attr="$(echo "${attr}" | "${picker}")"
-    fi
-    ;;
+@OVERLAY_PACKAGES@)
+	attr="${argv0}"
+	;;
+*)
+	attr="$(nix-locate --db "${NIX_INDEX_DB}" --top-level --minimal --at-root --whole-name "/bin/${argv0}")"
+	if [[ "$(echo "${attr}" | wc -l)" -ne 1 ]]; then
+		attr="$(echo "${attr}" | "${picker}")"
+	fi
+	;;
 esac
 
 if [[ -z $attr ]]; then
-  >&2 echo "no match"
-  exit 1
+	echo >&2 "no match"
+	exit 1
 fi
 
 if [[ -n $install ]]; then
-  nix-env -iA "nixpkgs.${attr%%.*}"
+	nix-env -iA "nixpkgs.${attr%%.*}"
 else
   nix run "nixpkgs.${attr}" -c "${argv0}" "$@"
 fi
