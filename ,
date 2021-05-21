@@ -52,5 +52,9 @@ fi
 if [[ -n $install ]]; then
 	nix-env -iA "nixpkgs.${attr%%.*}"
 else
-  nix run "nixpkgs.${attr}" -c "${argv0}" "$@"
+	if [[ $(nix --version) == *"2.4"* ]]; then
+		nix shell "nixpkgs#${attr}" -c "${argv0}" "$@"
+	else
+		nix run "nixpkgs.${attr}" -c "${argv0}" "$@"
+	fi
 fi
